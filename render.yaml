@@ -2,12 +2,18 @@ services:
   - type: web
     name: mm-data-search
     runtime: static
-    buildCommand: echo "Build complete at $(date)"
+    buildCommand: echo "Deploy at 2026-07-24T17:00:00"
     staticPublishPath: .
     headers:
       - path: /*
         name: Cache-Control
         value: "no-cache, no-store, must-revalidate"
+      - path: /*
+        name: Pragma
+        value: "no-cache"
+      - path: /*
+        name: Expires
+        value: "0"
     routes:
       - type: rewrite
         source: /*
