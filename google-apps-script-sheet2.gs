@@ -2,7 +2,7 @@
  * Google Apps Script for MM Data Search - Myanmar Locations & Postal Code
  * 
  * Deploy this for Sheet 2 (Myanmar_Locations_Postal_Code)
- * Spreadsheet: https://docs.google.com/spreadsheets/d/1VcB_oia94R7dqRTl7U7fhxQznCwgnxDlHNCDN8ygagM/edit
+ * Spreadsheet: https://docs.google.com/spreadsheets/d/1VcB_oia94R7dqRTl7U7fhxQznCwgnxDlHNCDN8ygagM/edit?gid=679029836#gid=679029836
  */
 
 // ===== CONFIGURATION =====

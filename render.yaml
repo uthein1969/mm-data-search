@@ -2,7 +2,7 @@ services:
   - type: web
     name: mm-data-search
     runtime: static
-    buildCommand: echo "Deploy at 2026-07-24T17:00:00"
+    buildCommand: echo "Deploy at 2026-07-24T19:00:00"
     staticPublishPath: .
     headers:
       - path: /*
