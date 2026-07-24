@@ -4,21 +4,10 @@
     "description": "MM Data Search - Web and Android app for searching Google Sheets data",
     "main": "index.html",
     "scripts": {
-        "start": "python -m http.server 8000 || npx serve .",
-        "build": "echo 'Build complete'",
-        "cap:init": "npx cap init 'MM Data Search' 'com.mm.datasearch' --web-dir .",
-        "cap:add": "npx cap add android",
-        "cap:copy": "npx cap copy android",
-        "cap:open": "npx cap open android"
+        "start": "npx serve . -l $PORT",
+        "build": "echo 'Static site - no build needed'"
     },
     "keywords": ["search", "google-sheets", "pwa", "android"],
     "author": "",
-    "license": "MIT",
-    "devDependencies": {
-        "@capacitor/cli": "^5.0.0"
-    },
-    "dependencies": {
-        "@capacitor/core": "^5.0.0",
-        "@capacitor/android": "^5.0.0"
-    }
+    "license": "MIT"
 }
