@@ -106,42 +106,42 @@ function initSearch() {
     elements.searchName.addEventListener('input', (e) => {
         toggleClearButton(elements.clearName, e.target.value);
     });
-    
+
     elements.searchName.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
-            performSearch('name');
+            performSearch('sheet1');
         }
     });
-    
+
     elements.clearName.addEventListener('click', () => {
         elements.searchName.value = '';
         toggleClearButton(elements.clearName, false);
         clearResults();
     });
-    
+
     elements.btnSearchName.addEventListener('click', () => {
-        performSearch('name');
+        performSearch('sheet1');
     });
-    
+
     // Location search
     elements.searchLocation.addEventListener('input', (e) => {
         toggleClearButton(elements.clearLocation, e.target.value);
     });
-    
+
     elements.searchLocation.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
-            performSearch('location');
+            performSearch('sheet2');
         }
     });
-    
+
     elements.clearLocation.addEventListener('click', () => {
         elements.searchLocation.value = '';
         toggleClearButton(elements.clearLocation, false);
         clearResults();
     });
-    
+
     elements.btnSearchLocation.addEventListener('click', () => {
-        performSearch('location');
+        performSearch('sheet2');
     });
 }
 
@@ -153,7 +153,8 @@ function toggleClearButton(btn, show) {
 }
 
 async function performSearch(type) {
-    const query = type === 'name' 
+    // type is 'sheet1' or 'sheet2'
+    const query = type === 'sheet1'
         ? elements.searchName.value.trim()
         : elements.searchLocation.value.trim();
     
@@ -189,10 +190,11 @@ async function performSearch(type) {
 
 // ===== Data Fetching =====
 async function fetchSheetData(type) {
-    const config = CONFIG[type === 'name' ? 'sheet1' : 'sheet2'];
-    
+    // type is 'sheet1' or 'sheet2' from the tab
+    const config = CONFIG[type];
+
     // Check if we have cached data
-    const cacheKey = `sheet${type === 'name' ? '1' : '2'}Data`;
+    const cacheKey = `${type}Data`;
     if (state[cacheKey].length > 0) {
         console.log('Using cached data for:', type);
         return state[cacheKey];
@@ -272,8 +274,8 @@ function getDemoData(type) {
 // ===== Data Filtering =====
 function filterData(data, query, type) {
     const searchTerm = query.toLowerCase();
-    
-    if (type === 'name') {
+
+    if (type === 'sheet1') {
         // Search in the Name column for Sheet 1 (Myanmar NRC)
         return data.filter(item => {
             const nameValue = (item['name'] || '').toLowerCase();
@@ -286,9 +288,9 @@ function filterData(data, query, type) {
             const townTownship = (item['Town_Township'] || item['town_township'] || '').toLowerCase();
             const township = (item['Township'] || item['township'] || '').toLowerCase();
             const engVillage = (item['ENG_Quarter_Village'] || item['eng_quarter_village'] || '').toLowerCase();
-            
-            return region.includes(searchTerm) || 
-                   townTownship.includes(searchTerm) || 
+
+            return region.includes(searchTerm) ||
+                   townTownship.includes(searchTerm) ||
                    township.includes(searchTerm) ||
                    engVillage.includes(searchTerm);
         });
@@ -320,7 +322,7 @@ function displayResults(results, type) {
 
 function renderResults(results, type) {
     elements.resultsList.innerHTML = results.map((item, index) => {
-        if (type === 'name') {
+        if (type === 'sheet1') {
             // Name Search - Sheet 1 format
             const name = item['name'] || 'Unknown';
             const nameMm = item['name_mm'] || '';
@@ -411,10 +413,10 @@ function initExport() {
 
 function exportToCSV() {
     if (state.filteredResults.length === 0) return;
-    
+
     const type = state.currentTab;
     let headers, rows;
-    
+
     if (type === 'sheet1') {
         // Name Search - Sheet 1 format
         headers = ['Name', 'Name MM', 'Short Name MM', 'Short Name', 'Region'];
