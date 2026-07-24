@@ -27,6 +27,11 @@ const CONFIG = {
     }
 };
 
+// Add timestamp to prevent caching
+function addCacheBuster(url) {
+    return url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+}
+
 // ===== State =====
 const state = {
     currentTab: 'sheet1',
@@ -194,12 +199,15 @@ async function fetchSheetData(type) {
     }
     
     try {
-        const response = await fetch(config.url);
+        const urlWithCacheBuster = addCacheBuster(config.url);
+        console.log('Fetching from:', urlWithCacheBuster);
+        const response = await fetch(urlWithCacheBuster);
         if (!response.ok) {
             throw new Error('Failed to fetch data');
         }
         
         const data = await response.json();
+        console.log('Data received:', data.length, 'records');
         state[cacheKey] = data;
         return data;
     } catch (error) {
