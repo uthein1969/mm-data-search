@@ -168,6 +168,12 @@ async function performSearch(type) {
         // Fetch data from Google Sheets
         const data = await fetchSheetData(type);
         
+        // Check if data was fetched successfully
+        if (!data || data.length === 0) {
+            showError('Could not load data. Please check your internet connection and try again.');
+            return;
+        }
+        
         // Filter results
         const results = filterData(data, query, type);
         
@@ -175,7 +181,7 @@ async function performSearch(type) {
         displayResults(results, type);
     } catch (error) {
         console.error('Search error:', error);
-        showError('Failed to search. Please try again.');
+        showError('Search failed: ' + error.message);
     } finally {
         setLoading(false);
     }
@@ -188,11 +194,13 @@ async function fetchSheetData(type) {
     // Check if we have cached data
     const cacheKey = `sheet${type === 'name' ? '1' : '2'}Data`;
     if (state[cacheKey].length > 0) {
+        console.log('Using cached data for:', type);
         return state[cacheKey];
     }
     
     // If no URL configured, use demo data
     if (!config.url) {
+        console.log('No URL configured for:', type);
         const demoData = getDemoData(type);
         state[cacheKey] = demoData;
         return demoData;
@@ -200,22 +208,34 @@ async function fetchSheetData(type) {
     
     try {
         const urlWithCacheBuster = addCacheBuster(config.url);
-        console.log('Fetching from:', urlWithCacheBuster);
+        console.log('Fetching Sheet', type === 'name' ? '1' : '2', 'from:', urlWithCacheBuster);
+        
         const response = await fetch(urlWithCacheBuster);
+        console.log('Response status:', response.status);
+        
         if (!response.ok) {
-            throw new Error('Failed to fetch data');
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const data = await response.json();
-        console.log('Data received:', data.length, 'records');
+        const text = await response.text();
+        console.log('Response length:', text.length, 'characters');
+        
+        // Check if response starts with HTML (login page)
+        if (text.trim().startsWith('<!') || text.trim().startsWith('<html')) {
+            console.error('Response is HTML, not JSON - likely a login page');
+            throw new Error('Google Apps Script requires login - please set access to "Anyone"');
+        }
+        
+        const data = JSON.parse(text);
+        console.log('Data received:', data.length, 'records for', type);
+        console.log('First record:', data[0]);
+        
         state[cacheKey] = data;
         return data;
     } catch (error) {
-        console.error('Fetch error:', error);
-        // Fall back to demo data
-        const demoData = getDemoData(type);
-        state[cacheKey] = demoData;
-        return demoData;
+        console.error('Fetch error for', type, ':', error.message);
+        // Return empty array instead of demo data to show actual error
+        return [];
     }
 }
 
