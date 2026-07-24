@@ -1,5 +1,5 @@
 /**
- * MM Data Search - Main Application
+ * MM Data Search - Main Application (v3 - Sheet 2 Location Support)
  * Searches data from Google Sheets
  */
 
