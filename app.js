@@ -292,36 +292,69 @@ function displayResults(results, type) {
 
 function renderResults(results, type) {
     elements.resultsList.innerHTML = results.map((item, index) => {
-        // Get all columns from the Myanmar NRC data
-        const name = item['name'] || 'Unknown';
-        const nameMm = item['name_mm'] || '';
-        const shortNameMm = item['short_name_mm'] || '';
-        const shortName = item['short_name'] || '';
-        const sheetName = item['_sheet_name'] || '';
-        
-        // Build detail text with all available information
-        let details = [];
-        if (nameMm) details.push(`Name MM: ${nameMm}`);
-        if (shortNameMm) details.push(`Short MM: ${shortNameMm}`);
-        if (shortName) details.push(`Short Name: ${shortName}`);
-        if (sheetName) details.push(`Region: ${sheetName}`);
-        
-        const detailText = details.join(' | ') || 'No additional details';
-        
-        return `
-            <div class="result-item" data-index="${index}">
-                <div class="result-name">${escapeHtml(name)}</div>
-                <div class="result-detail">${escapeHtml(detailText)}</div>
-                <div class="result-meta">
-                    <span class="result-tag">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-                        </svg>
-                        Sheet 1
-                    </span>
+        if (type === 'name') {
+            // Name Search - Sheet 1 format
+            const name = item['name'] || 'Unknown';
+            const nameMm = item['name_mm'] || '';
+            const shortNameMm = item['short_name_mm'] || '';
+            const shortName = item['short_name'] || '';
+            const sheetName = item['_sheet_name'] || '';
+            
+            let details = [];
+            if (nameMm) details.push(`Name MM: ${nameMm}`);
+            if (shortNameMm) details.push(`Short MM: ${shortNameMm}`);
+            if (shortName) details.push(`Short Name: ${shortName}`);
+            if (sheetName) details.push(`Region: ${sheetName}`);
+            
+            const detailText = details.join(' | ') || 'No additional details';
+            
+            return `
+                <div class="result-item" data-index="${index}">
+                    <div class="result-name">${escapeHtml(name)}</div>
+                    <div class="result-detail">${escapeHtml(detailText)}</div>
+                    <div class="result-meta">
+                        <span class="result-tag">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                            </svg>
+                            Sheet 1
+                        </span>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        } else {
+            // Location Search - Sheet 2 format
+            const region = item['Region'] || item['region'] || '';
+            const townTownship = item['Town_Township'] || item['town_township'] || '';
+            const township = item['Township'] || item['township'] || '';
+            const engVillage = item['ENG_Quarter_Village'] || item['eng_quarter_village'] || '';
+            const mmVillage = item['MM_Quarter_Village'] || item['mm_quarter_village'] || '';
+            const postalCode = item['Postal_Code'] || item['postal_code'] || '';
+            
+            let details = [];
+            if (region) details.push(`Region: ${region}`);
+            if (townTownship) details.push(`Town/Township: ${townTownship}`);
+            if (engVillage) details.push(`Village: ${engVillage}`);
+            if (mmVillage) details.push(`(MM: ${mmVillage})`);
+            if (postalCode) details.push(`Postal: ${postalCode}`);
+            
+            const detailText = details.join(' | ') || 'No additional details';
+            
+            return `
+                <div class="result-item" data-index="${index}">
+                    <div class="result-name">${escapeHtml(township || townTownship)}</div>
+                    <div class="result-detail">${escapeHtml(detailText)}</div>
+                    <div class="result-meta">
+                        <span class="result-tag">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            Sheet 2
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
     }).join('');
     
     // Add click handlers
@@ -351,19 +384,31 @@ function initExport() {
 function exportToCSV() {
     if (state.filteredResults.length === 0) return;
     
-    // Define columns to export (Myanmar NRC format)
-    const headers = ['Name', 'Name MM', 'Short Name MM', 'Short Name', 'Region'];
+    const type = state.currentTab;
+    let headers, rows;
     
-    // Create CSV content
-    const rows = state.filteredResults.map(item => {
-        return [
+    if (type === 'sheet1') {
+        // Name Search - Sheet 1 format
+        headers = ['Name', 'Name MM', 'Short Name MM', 'Short Name', 'Region'];
+        rows = state.filteredResults.map(item => [
             `"${(item['name'] || '').replace(/"/g, '""')}"`,
             `"${(item['name_mm'] || '').replace(/"/g, '""')}"`,
             `"${(item['short_name_mm'] || '').replace(/"/g, '""')}"`,
             `"${(item['short_name'] || '').replace(/"/g, '""')}"`,
             `"${(item['_sheet_name'] || '').replace(/"/g, '""')}"`
-        ];
-    });
+        ]);
+    } else {
+        // Location Search - Sheet 2 format
+        headers = ['Region', 'Town_Township', 'Township', 'ENG_Quarter_Village', 'MM_Quarter_Village', 'Postal_Code'];
+        rows = state.filteredResults.map(item => [
+            `"${(item['Region'] || item['region'] || '').replace(/"/g, '""')}"`,
+            `"${(item['Town_Township'] || item['town_township'] || '').replace(/"/g, '""')}"`,
+            `"${(item['Township'] || item['township'] || '').replace(/"/g, '""')}"`,
+            `"${(item['ENG_Quarter_Village'] || item['eng_quarter_village'] || '').replace(/"/g, '""')}"`,
+            `"${(item['MM_Quarter_Village'] || item['mm_quarter_village'] || '').replace(/"/g, '""')}"`,
+            `"${(item['Postal_Code'] || item['postal_code'] || '').replace(/"/g, '""')}"`
+        ]);
+    }
     
     const csvContent = [
         headers.join(','),
@@ -374,7 +419,7 @@ function exportToCSV() {
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `mm-nrc-search-${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `mm-${type}-search-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
 }
