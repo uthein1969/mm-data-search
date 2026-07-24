@@ -2,8 +2,12 @@ services:
   - type: web
     name: mm-data-search
     runtime: static
-    buildCommand: echo "Static site - no build needed"
+    buildCommand: echo "Build complete at $(date)"
     staticPublishPath: .
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: "no-cache, no-store, must-revalidate"
     routes:
       - type: rewrite
         source: /*
