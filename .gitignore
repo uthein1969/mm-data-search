@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+
+# APK files (keep source, not build outputs)
+*.apk
+android/app/build/outputs/
+
+# Gradle wrapper JAR (can be regenerated)
+android/gradle/wrapper/gradle-wrapper.jar
+
+# Gradle downloads
+android/gradle/gradle-8.0/
+android/gradle-8.0-bin.zip
+
+# Archives
+*.zip
