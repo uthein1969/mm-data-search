@@ -1,5 +1,5 @@
 /**
- * MM Data Search - Main Application
+ * MM Data Search - Main Application (v3 - Sheet 2 Location Support)
  * Searches data from Google Sheets
  */
 
@@ -12,12 +12,17 @@ const CONFIG = {
         detailKey: 'details'
     },
     sheet2: {
-        url: 'https://script.google.com/macros/s/AKfycbxcOEuKCqtbBwzFv3bjVDEEOxA6csCEDLhShfYHpHiL5WH68mCoAx00IszJFyUsJg7exw/exec', 
+        url: 'https://script.google.com/macros/s/AKfycby-Ot0_IIPQ4AAMzqfe8kvIS2dFo2bYa3J_HFMr8l2yzmePRU9d8y3LpRhhecZC07B-zg/exec',
         searchColumn: 'Town_Township',
         nameKey: 'town_township',
         detailKey: 'details'
     }
 };
+
+// Add timestamp to prevent caching
+function addCacheBuster(url) {
+    return url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+}
 
 // ===== State =====
 const state = {
@@ -75,7 +80,7 @@ function initSearch() {
         toggleClearButton(elements.clearName, e.target.value);
     });
     elements.searchName.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') performSearch('name');
+        if (e.key === 'Enter') performSearch('sheet1');
     });
     elements.clearName.addEventListener('click', () => {
         elements.searchName.value = '';
@@ -83,15 +88,15 @@ function initSearch() {
         clearResults();
     });
     elements.btnSearchName.addEventListener('click', () => {
-        performSearch('name');
+        performSearch('sheet1');
     });
-
+    
     // Location search
     elements.searchLocation.addEventListener('input', (e) => {
         toggleClearButton(elements.clearLocation, e.target.value);
     });
     elements.searchLocation.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') performSearch('location');
+        if (e.key === 'Enter') performSearch('sheet2');
     });
     elements.clearLocation.addEventListener('click', () => {
         elements.searchLocation.value = '';
@@ -99,7 +104,7 @@ function initSearch() {
         clearResults();
     });
     elements.btnSearchLocation.addEventListener('click', () => {
-        performSearch('location');
+        performSearch('sheet2');
     });
 }
 
@@ -109,7 +114,7 @@ function toggleClearButton(btn, show) {
 }
 
 async function performSearch(type) {
-    const query = type === 'name' 
+    const query = type === 'sheet1'
         ? elements.searchName.value.trim()
         : elements.searchLocation.value.trim();
     
@@ -122,11 +127,17 @@ async function performSearch(type) {
     
     try {
         const data = await fetchSheetData(type);
+        
+        if (!data || data.length === 0) {
+            showError('Could not load data from Google Sheets. Please check your network or Apps Script deployment.');
+            return;
+        }
+        
         const results = filterData(data, query, type);
         displayResults(results, type);
     } catch (error) {
         console.error('Search error:', error);
-        showError('Failed to search. Please try again.');
+        showError('Search failed: ' + error.message);
     } finally {
         setLoading(false);
     }
@@ -134,67 +145,103 @@ async function performSearch(type) {
 
 // ===== Data Fetching =====
 async function fetchSheetData(type) {
-    const isNameSearch = (type === 'name');
-    const config = isNameSearch ? CONFIG.sheet1 : CONFIG.sheet2;
-    const cacheKey = isNameSearch ? 'sheet1Data' : 'sheet2Data';
+    const config = CONFIG[type];
+    const cacheKey = `${type}Data`;
 
     if (state[cacheKey] && state[cacheKey].length > 0) {
+        console.log('Using cached data for:', type);
         return state[cacheKey];
     }
     
     if (!config.url) {
+        console.log('No URL configured, fallback to demo data');
         const demoData = getDemoData(type);
         state[cacheKey] = demoData;
         return demoData;
     }
     
     try {
-        // Cache မမိစေရန် Timestamp ပူးတွဲ ပါဝင်ပါသည်
-        const fetchUrl = `${config.url}?_t=${new Date().getTime()}`;
-        const response = await fetch(fetchUrl);
-        if (!response.ok) throw new Error('Failed to fetch data');
+        const urlWithCacheBuster = addCacheBuster(config.url);
+        console.log('Fetching', type, 'from:', urlWithCacheBuster);
         
-        const data = await response.json();
+        const response = await fetch(urlWithCacheBuster);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const text = await response.text();
+        
+        if (text.trim().startsWith('<!') || text.trim().startsWith('<html')) {
+            console.error('Response is HTML, likely a permission issue.');
+            throw new Error('Google Apps Script requires login - please set access to "Anyone"');
+        }
+        
+        const data = JSON.parse(text);
+        console.log('Data received:', data.length, 'records for', type);
+        
         state[cacheKey] = data;
         return data;
     } catch (error) {
-        console.error('Fetch error:', error);
+        console.error('Fetch error for', type, ':', error.message);
+        // Fallback to Demo Data if Fetch fails so app won't break
         const demoData = getDemoData(type);
-        state[cacheKey] = demoData;
         return demoData;
     }
 }
 
 function getDemoData(type) {
-    if (type === 'name') {
+    if (type === 'sheet1') {
         return [
-            { name: 'Apple Inc.', details: 'Technology company based in Cupertino, California.' },
-            { name: 'Google LLC', details: 'Technology company based in Mountain View, California.' }
+            { name: 'Apple Inc.', name_mm: 'အက်ပဲလ်', details: 'Technology company based in Cupertino, California.' },
+            { name: 'Microsoft Corporation', name_mm: 'မိုက်ခရိုဆော့ဖ်', details: 'Technology company based in Redmond, Washington.' }
         ];
     } else {
         return [
-            { town_township: 'Yangon', details: 'Commercial capital of Myanmar.' },
-            { town_township: 'Mandalay', details: 'Cultural center of Myanmar.' }
+            { region: 'Yangon', township: 'Kamayut', town_township: 'Yangon/Kamayut', eng_quarter_village: 'Hledan' },
+            { region: 'Mandalay', township: 'Chanayethazan', town_township: 'Mandalay/Chanayethazan', eng_quarter_village: 'Zegyo' }
         ];
     }
 }
 
-// ===== Data Filtering (FIXED BUG HERE) =====
+// Helper: Case-insensitive Key Getter
+function getValue(item, keys) {
+    for (let key of keys) {
+        // Find property ignoring case
+        const foundKey = Object.keys(item).find(k => k.toLowerCase() === key.toLowerCase());
+        if (foundKey && item[foundKey]) {
+            return String(item[foundKey]);
+        }
+    }
+    return '';
+}
+
+// ===== Data Filtering (Robust Case-Insensitive Search) =====
 function filterData(data, query, type) {
     const searchTerm = query.toLowerCase();
-    
+
     return data.filter(item => {
-        if (type === 'name') {
-            // Sheet 1: Search in name, name_mm, short_name
-            const name = (item['name'] || '').toLowerCase();
-            const nameMm = (item['name_mm'] || '').toLowerCase();
-            const shortName = (item['short_name'] || '').toLowerCase();
-            return name.includes(searchTerm) || nameMm.includes(searchTerm) || shortName.includes(searchTerm);
+        if (type === 'sheet1') {
+            // Search across all possible name fields
+            const name = getValue(item, ['name', 'Name', 'NAME']).toLowerCase();
+            const nameMm = getValue(item, ['name_mm', 'Name_MM', 'Name MM']).toLowerCase();
+            const shortName = getValue(item, ['short_name', 'Short_Name', 'shortName']).toLowerCase();
+            const details = getValue(item, ['details', 'Details']).toLowerCase();
+
+            return name.includes(searchTerm) || 
+                   nameMm.includes(searchTerm) || 
+                   shortName.includes(searchTerm) ||
+                   details.includes(searchTerm);
         } else {
-            // Sheet 2: Search in town_township, town, details
-            const town = (item['town_township'] || item['town'] || '').toLowerCase();
-            const details = (item['details'] || '').toLowerCase();
-            return town.includes(searchTerm) || details.includes(searchTerm);
+            // Search across location fields
+            const region = getValue(item, ['Region', 'region']).toLowerCase();
+            const townTownship = getValue(item, ['Town_Township', 'town_township', 'town', 'Town']).toLowerCase();
+            const township = getValue(item, ['Township', 'township']).toLowerCase();
+            const engVillage = getValue(item, ['ENG_Quarter_Village', 'eng_quarter_village']).toLowerCase();
+            const mmVillage = getValue(item, ['MM_Quarter_Village', 'mm_quarter_village']).toLowerCase();
+
+            return region.includes(searchTerm) ||
+                   townTownship.includes(searchTerm) ||
+                   township.includes(searchTerm) ||
+                   engVillage.includes(searchTerm) ||
+                   mmVillage.includes(searchTerm);
         }
     });
 }
@@ -223,37 +270,64 @@ function displayResults(results, type) {
 
 function renderResults(results, type) {
     elements.resultsList.innerHTML = results.map((item, index) => {
-        let title = '';
-        let detailText = '';
-        let tagText = (type === 'name') ? 'Sheet 1 (Name)' : 'Sheet 2 (Location)';
-
-        if (type === 'name') {
-            title = item['name'] || 'Unknown';
+        if (type === 'sheet1') {
+            const name = getValue(item, ['name', 'Name']) || 'Unknown';
+            const nameMm = getValue(item, ['name_mm', 'Name_MM']);
+            const shortName = getValue(item, ['short_name', 'Short_Name']);
+            const sheetName = getValue(item, ['_sheet_name', 'region', 'Region']);
+            
             let details = [];
-            if (item['name_mm']) details.push(`Name MM: ${item['name_mm']}`);
-            if (item['short_name_mm']) details.push(`Short MM: ${item['short_name_mm']}`);
-            if (item['short_name']) details.push(`Short Name: ${item['short_name']}`);
-            if (item['_sheet_name']) details.push(`Region: ${item['_sheet_name']}`);
-            detailText = details.join(' | ') || 'No additional details';
-        } else {
-            title = item['town_township'] || item['town'] || 'Unknown Location';
-            detailText = item['details'] || item['region'] || 'No additional details';
-        }
-        
-        return `
-            <div class="result-item" data-index="${index}">
-                <div class="result-name">${escapeHtml(title)}</div>
-                <div class="result-detail">${escapeHtml(detailText)}</div>
-                <div class="result-meta">
-                    <span class="result-tag">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-                        </svg>
-                        ${tagText}
-                    </span>
+            if (nameMm) details.push(`Name MM: ${nameMm}`);
+            if (shortName) details.push(`Short Name: ${shortName}`);
+            if (sheetName) details.push(`Region: ${sheetName}`);
+            
+            const detailText = details.join(' | ') || getValue(item, ['details', 'Details']) || 'No additional details';
+            
+            return `
+                <div class="result-item" data-index="${index}">
+                    <div class="result-name">${escapeHtml(name)}</div>
+                    <div class="result-detail">${escapeHtml(detailText)}</div>
+                    <div class="result-meta">
+                        <span class="result-tag">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                            </svg>
+                            Sheet 1 (Name)
+                        </span>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        } else {
+            const township = getValue(item, ['Township', 'township']);
+            const townTownship = getValue(item, ['Town_Township', 'town_township', 'town']);
+            const region = getValue(item, ['Region', 'region']);
+            const engVillage = getValue(item, ['ENG_Quarter_Village', 'eng_quarter_village']);
+            const mmVillage = getValue(item, ['MM_Quarter_Village', 'mm_quarter_village']);
+            
+            let details = [];
+            if (region) details.push(`Region: ${region}`);
+            if (townTownship) details.push(`Town/Township: ${townTownship}`);
+            if (engVillage) details.push(`Village: ${engVillage}`);
+            if (mmVillage) details.push(`(MM: ${mmVillage})`);
+            
+            const titleText = township || townTownship || region || 'Unknown Location';
+            const detailText = details.join(' | ') || getValue(item, ['details', 'Details']) || 'No additional details';
+            
+            return `
+                <div class="result-item" data-index="${index}">
+                    <div class="result-name">${escapeHtml(titleText)}</div>
+                    <div class="result-detail">${escapeHtml(detailText)}</div>
+                    <div class="result-meta">
+                        <span class="result-tag">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            Sheet 2 (Location)
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
     }).join('');
     
     document.querySelectorAll('.result-item').forEach(item => {
@@ -280,28 +354,28 @@ function initExport() {
 
 function exportToCSV() {
     if (state.filteredResults.length === 0) return;
-    
-    const isName = (state.currentTab === 'sheet1');
-    const headers = isName 
-        ? ['Name', 'Name MM', 'Short Name MM', 'Short Name', 'Region']
-        : ['Town/Township', 'Details'];
-    
-    const rows = state.filteredResults.map(item => {
-        if (isName) {
-            return [
-                `"${(item['name'] || '').replace(/"/g, '""')}"`,
-                `"${(item['name_mm'] || '').replace(/"/g, '""')}"`,
-                `"${(item['short_name_mm'] || '').replace(/"/g, '""')}"`,
-                `"${(item['short_name'] || '').replace(/"/g, '""')}"`,
-                `"${(item['_sheet_name'] || '').replace(/"/g, '""')}"`
-            ];
-        } else {
-            return [
-                `"${(item['town_township'] || item['town'] || '').replace(/"/g, '""')}"`,
-                `"${(item['details'] || '').replace(/"/g, '""')}"`
-            ];
-        }
-    });
+
+    const type = state.currentTab;
+    let headers, rows;
+
+    if (type === 'sheet1') {
+        headers = ['Name', 'Name MM', 'Short Name', 'Region'];
+        rows = state.filteredResults.map(item => [
+            `"${(getValue(item, ['name', 'Name'])).replace(/"/g, '""')}"`,
+            `"${(getValue(item, ['name_mm', 'Name_MM'])).replace(/"/g, '""')}"`,
+            `"${(getValue(item, ['short_name', 'Short_Name'])).replace(/"/g, '""')}"`,
+            `"${(getValue(item, ['_sheet_name', 'region'])).replace(/"/g, '""')}"`
+        ]);
+    } else {
+        headers = ['Region', 'Town_Township', 'Township', 'ENG_Quarter_Village', 'MM_Quarter_Village'];
+        rows = state.filteredResults.map(item => [
+            `"${(getValue(item, ['Region', 'region'])).replace(/"/g, '""')}"`,
+            `"${(getValue(item, ['Town_Township', 'town_township'])).replace(/"/g, '""')}"`,
+            `"${(getValue(item, ['Township', 'township'])).replace(/"/g, '""')}"`,
+            `"${(getValue(item, ['ENG_Quarter_Village', 'eng_quarter_village'])).replace(/"/g, '""')}"`,
+            `"${(getValue(item, ['MM_Quarter_Village', 'mm_quarter_village'])).replace(/"/g, '""')}"`
+        ]);
+    }
     
     const csvContent = [
         headers.join(','),
@@ -311,7 +385,7 @@ function exportToCSV() {
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `mm-data-search-${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `mm-${type}-search-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
 }
@@ -360,7 +434,7 @@ function init() {
     initSearch();
     initExport();
     elements.searchName.focus();
-    console.log('MM Data Search initialized');
+    console.log('MM Data Search v3 (Fixed) initialized');
 }
 
 document.addEventListener('DOMContentLoaded', init);
