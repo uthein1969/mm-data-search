@@ -273,11 +273,13 @@ function renderResults(results, type) {
         if (type === 'sheet1') {
             const name = getValue(item, ['name', 'Name']) || 'Unknown';
             const nameMm = getValue(item, ['name_mm', 'Name_MM']);
+            const shortNameMm = getValue(item, ['short_name_mm', 'Short_Name_MM', 'Short Name MM']);
             const shortName = getValue(item, ['short_name', 'Short_Name']);
             const sheetName = getValue(item, ['_sheet_name', 'region', 'Region']);
             
             let details = [];
             if (nameMm) details.push(`Name MM: ${nameMm}`);
+            if (shortNameMm) details.push(`Short Name MM: ${shortNameMm}`);
             if (shortName) details.push(`Short Name: ${shortName}`);
             if (sheetName) details.push(`Region: ${sheetName}`);
             
