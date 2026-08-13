@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>MM Data Search</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --primary-dark: #4338ca;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --bg-dark: #0f0f23;
+            --bg-card: #1a1a2e;
+            --bg-input: #252547;
+            --bg-hover: #2d2d5a;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --border-focus: #4f46e5;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 12px;
+        }
+        
+        /* Header */
+        .header {
+            padding: 20px 0 12px;
+            text-align: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+        
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            color: var(--accent);
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-light), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+        
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 6px;
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .tab-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+        }
+        
+        .tab-icon {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .tab-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Search Panel */
+        .search-panel {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+            margin-bottom: 12px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .search-box {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        @media (min-width: 480px) {
+            .search-box {
+                flex-direction: row;
+            }
+        }
+        
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            width: 20px;
+            height: 20px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 14px 44px;
+            background: var(--bg-input);
+            border: 2px solid transparent;
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            background: var(--bg-dark);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+        
+        .clear-btn {
+            position: absolute;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            border-radius: 50%;
+            color: var(--text-muted);
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+        
+        .clear-btn.visible {
+            opacity: 1;
+        }
+        
+        .clear-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .clear-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .search-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .search-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .search-btn:active {
+            transform: translateY(0);
+        }
+        
+        .search-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        /* Loading */
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 24px;
+            color: var(--text-secondary);
+        }
+        
+        .loading.active {
+            display: flex;
+        }
+        
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--bg-input);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        /* Results Section */
+        .results-section {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+        
+        .results-section.active {
+            display: block;
+        }
+        
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .results-title {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .results-count {
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 500;
+            background: rgba(6, 182, 212, 0.15);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        
+        /* Table Styles */
+        .results-table-wrapper {
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        
+        .results-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .results-table th {
+            background: var(--primary);
+            color: white;
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+            white-space: nowrap;
+            font-size: 0.8rem;
+        }
+        
+        .results-table td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+        
+        .results-table tbody tr {
+            transition: background 0.2s;
+        }
+        
+        .results-table tbody tr:hover {
+            background: var(--bg-hover);
+        }
+        
+        .results-table tbody tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .results-table tbody tr:nth-child(even):hover {
+            background: var(--bg-hover);
+        }
+        
+        .col-name {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .col-region {
+            color: var(--accent);
+            font-weight: 500;
+        }
+        
+        .col-township {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .col-village {
+            font-size: 0.8rem;
+        }
+        
+        .col-postal {
+            color: var(--success);
+            font-weight: 600;
+            font-family: monospace;
+        }
+        
+        /* Empty & No Results */
+        .empty-state, .no-results {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 24px;
+            text-align: center;
+        }
+        
+        .empty-icon {
+            width: 64px;
+            height: 64px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        .empty-text {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        
+        .empty-hint {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+        
+        /* Export Section */
+        .export-section {
+            padding: 12px 0 0;
+        }
+        
+        .export-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .export-btn:hover {
+            border-color: var(--success);
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .export-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        /* Footer */
+        .footer {
+            padding: 16px 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+        
+        /* Animations */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Scrollbar */
+        .results-table-wrapper::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        .results-table-wrapper::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+            border-radius: 3px;
+        }
+        
+        .results-table-wrapper::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+        
+        /* Touch Feedback */
+        @media (hover: none) {
+            .search-btn:active {
+                transform: scale(0.98);
+            }
+            
+            .tab-btn:active {
+                transform: scale(0.98);
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .tab-text {
+                display: none;
+            }
+            
+            .tab-btn {
+                padding: 12px;
+            }
+            
+            .tab-icon {
+                width: 24px;
+                height: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <h1>MM Data Search</h1>
+                </div>
+                <p class="subtitle">Search across multiple data sources</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <button class="tab-btn active" data-tab="name">
+                    <span class="tab-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                        </svg>
+                    </span>
+                    <span class="tab-text">Name Search</span>
+                </button>
+                <button class="tab-btn" data-tab="location">
+                    <span class="tab-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                    </span>
+                    <span class="tab-text">Location Search</span>
+                </button>
+            </div>
+
+            <!-- Search Panel -->
+            <div class="search-panel">
+                <!-- Name Search Tab -->
+                <div class="tab-content active" id="name-content">
+                    <div class="search-box">
+                        <div class="input-wrapper">
+                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="M21 21l-4.35-4.35"/>
+                            </svg>
+                            <input 
+                                type="text" 
+                                id="search-name" 
+                                class="search-input" 
+                                placeholder="Search by name..."
+                                autocomplete="off"
+                            >
+                            <button class="clear-btn" id="clear-name" aria-label="Clear search">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <button class="search-btn" id="btn-search-name">
+                            <span>Search</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="M21 21l-4.35-4.35"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Location Search Tab -->
+                <div class="tab-content" id="location-content">
+                    <div class="search-box">
+                        <div class="input-wrapper">
+                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            <input 
+                                type="text" 
+                                id="search-location" 
+                                class="search-input" 
+                                placeholder="Search by town/township..."
+                                autocomplete="off"
+                            >
+                            <button class="clear-btn" id="clear-location" aria-label="Clear search">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <button class="search-btn" id="btn-search-location">
+                            <span>Search</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="M21 21l-4.35-4.35"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <span>Loading data...</span>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="results-section">
+                <div class="results-header">
+                    <h2 class="results-title">Search Results</h2>
+                    <span class="results-count" id="results-count">0 found</span>
+                </div>
+                <div class="results-table-wrapper" id="results-table-wrapper">
+                    <table class="results-table" id="results-table">
+                        <thead id="results-thead"></thead>
+                        <tbody id="results-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="empty-state" id="empty-state">
+                    <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <p class="empty-text">Enter a search term to find results</p>
+                    <p class="empty-hint">Search across your connected Google Sheets</p>
+                </div>
+                <div class="no-results" id="no-results" style="display: none;">
+                    <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M8 15h8"/>
+                        <line x1="9" y1="9" x2="9.01" y2="9"/>
+                        <line x1="15" y1="9" x2="15.01" y2="9"/>
+                    </svg>
+                    <p class="empty-text">No results found</p>
+                    <p class="empty-hint">Try a different search term</p>
+                </div>
+            </div>
+
+            <!-- Export Button -->
+            <div class="export-section" id="export-section" style="display: none;">
+                <button class="export-btn" id="export-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span>Export to CSV</span>
+                </button>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>MM Data Search &copy; 2026</p>
+        </footer>
+    </div>
+
+    <script>
+        // ===== Configuration - Your Google Sheets URLs =====
+        const CONFIG = {
+            name: {
+                url: 'https://script.google.com/macros/s/AKfycbzIAQsdtWl1gIYv8i_OrcbFG9pPrAKVmHVZk2TsAFfxSmb9QYY9hSUWfNWQPcvlfWCbkA/exec',
+                searchColumn: 'name'
+            },
+            location: {
+                url: 'https://script.google.com/macros/s/AKfycby-Ot0_IIPQ4AAMzqfe8kvIS2dFo2bYa3J_HFMr8l2yzmePRU9d8y3LpRhhecZC07B-zg/exec',
+                searchColumn: 'Township'
+            }
+        };
+        
+        // ===== State =====
+        const state = {
+            currentTab: 'name',
+            nameData: [],
+            locationData: [],
+            filteredResults: [],
+            isLoading: false
+        };
+        
+        // ===== DOM Elements =====
+        const elements = {
+            tabBtns: document.querySelectorAll('.tab-btn'),
+            searchName: document.getElementById('search-name'),
+            searchLocation: document.getElementById('search-location'),
+            clearName: document.getElementById('clear-name'),
+            clearLocation: document.getElementById('clear-location'),
+            btnSearchName: document.getElementById('btn-search-name'),
+            btnSearchLocation: document.getElementById('btn-search-location'),
+            loading: document.getElementById('loading'),
+            resultsSection: document.getElementById('results-section'),
+            resultsCount: document.getElementById('results-count'),
+            resultsThead: document.getElementById('results-thead'),
+            resultsTbody: document.getElementById('results-tbody'),
+            resultsTableWrapper: document.getElementById('results-table-wrapper'),
+            emptyState: document.getElementById('empty-state'),
+            noResults: document.getElementById('no-results'),
+            exportSection: document.getElementById('export-section'),
+            exportBtn: document.getElementById('export-btn')
+        };
+        
+        // ===== Tab Navigation =====
+        function initTabs() {
+            elements.tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tab = btn.dataset.tab;
+                    switchTab(tab);
+                });
+            });
+        }
+        
+        function switchTab(tab) {
+            state.currentTab = tab;
+            elements.tabBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.id === `${tab}-content`);
+            });
+            clearResults();
+        }
+        
+        // ===== Search Functionality =====
+        function initSearch() {
+            // Name search
+            elements.searchName.addEventListener('input', (e) => {
+                toggleClearButton(elements.clearName, e.target.value);
+            });
+            
+            elements.searchName.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') performSearch('name');
+            });
+            
+            elements.clearName.addEventListener('click', () => {
+                elements.searchName.value = '';
+                toggleClearButton(elements.clearName, false);
+                clearResults();
+            });
+            
+            elements.btnSearchName.addEventListener('click', () => performSearch('name'));
+            
+            // Location search
+            elements.searchLocation.addEventListener('input', (e) => {
+                toggleClearButton(elements.clearLocation, e.target.value);
+            });
+            
+            elements.searchLocation.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') performSearch('location');
+            });
+            
+            elements.clearLocation.addEventListener('click', () => {
+                elements.searchLocation.value = '';
+                toggleClearButton(elements.clearLocation, false);
+                clearResults();
+            });
+            
+            elements.btnSearchLocation.addEventListener('click', () => performSearch('location'));
+        }
+        
+        function toggleClearButton(btn, show) {
+            if (typeof show === 'string') show = show.length > 0;
+            btn.classList.toggle('visible', show);
+        }
+        
+        async function performSearch(type) {
+            const query = type === 'name' 
+                ? elements.searchName.value.trim()
+                : elements.searchLocation.value.trim();
+            
+            if (!query) {
+                showEmptyState();
+                return;
+            }
+            
+            setLoading(true);
+            
+            try {
+                const data = await fetchData(type);
+                const results = filterData(data, query, type);
+                displayResults(results, type);
+            } catch (error) {
+                console.error('Search error:', error);
+                showError('Failed to search. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        // ===== Data Fetching =====
+        async function fetchData(type) {
+            const config = CONFIG[type];
+            const cacheKey = `${type}Data`;
+            
+            if (state[cacheKey].length > 0) {
+                return state[cacheKey];
+            }
+            
+            if (!config.url) {
+                return getDemoData(type);
+            }
+            
+            try {
+                const response = await fetch(config.url);
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                state[cacheKey] = data;
+                return data;
+            } catch (error) {
+                console.error('Fetch error:', error);
+                return getDemoData(type);
+            }
+        }
+        
+        function getDemoData(type) {
+            if (type === 'name') {
+                return [
+                    { name: 'Demo Name 1', name_mm: 'Demo MM 1', short_name: 'D1', short_name_mm: 'DMM1', _sheet_name: 'Region 1' },
+                    { name: 'Demo Name 2', name_mm: 'Demo MM 2', short_name: 'D2', short_name_mm: 'DMM2', _sheet_name: 'Region 2' }
+                ];
+            } else {
+                return [
+                    { Region: 'Naypyitaw', Town_Township: 'Za Bu Thi Ri', Township: 'ZaBuThiRi', ENG_Quarter_Village: 'Zay Ya Theik Di Quarter', MM_Quarter_Village: 'ဇရည်းရဲ တိုက်နယ်', Postal_Code: '1501001' }
+                ];
+            }
+        }
+        
+        // ===== Data Filtering =====
+        function filterData(data, query, type) {
+            const searchTerm = query.toLowerCase();
+            
+            return data.filter(item => {
+                if (type === 'name') {
+                    const nameValue = (item['name'] || '').toLowerCase();
+                    return nameValue.includes(searchTerm);
+                } else {
+                    // Search in multiple columns for location
+                    const region = (item['Region'] || item['region'] || '').toLowerCase();
+                    const townTownship = (item['Town_Township'] || item['town_township'] || '').toLowerCase();
+                    const township = (item['Township'] || item['township'] || '').toLowerCase();
+                    const engVillage = (item['ENG_Quarter_Village'] || item['eng_quarter_village'] || '').toLowerCase();
+                    
+                    // Match if search term is found in any of these columns
+                    return region.includes(searchTerm) || 
+                           townTownship.includes(searchTerm) || 
+                           township.includes(searchTerm) ||
+                           engVillage.includes(searchTerm);
+                }
+            });
+        }
+        
+        // ===== Results Display =====
+        function displayResults(results, type) {
+            state.filteredResults = results;
+            
+            elements.resultsSection.classList.add('active');
+            elements.resultsCount.textContent = `${results.length} found`;
+            
+            if (results.length === 0) {
+                elements.resultsTableWrapper.style.display = 'none';
+                elements.emptyState.style.display = 'none';
+                elements.noResults.style.display = 'flex';
+                elements.exportSection.style.display = 'none';
+            } else {
+                elements.resultsTableWrapper.style.display = 'block';
+                elements.emptyState.style.display = 'none';
+                elements.noResults.style.display = 'none';
+                elements.exportSection.style.display = 'block';
+                renderResults(results, type);
+            }
+        }
+        
+        function renderResults(results, type) {
+            if (type === 'name') {
+                // Name Search - Table with Name columns
+                elements.resultsThead.innerHTML = `
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Name (MM)</th>
+                        <th>Short Name</th>
+                        <th>Short Name (MM)</th>
+                        <th>Region</th>
+                    </tr>
+                `;
+                
+                elements.resultsTbody.innerHTML = results.map((item, index) => {
+                    const name = item['name'] || '';
+                    const nameMm = item['name_mm'] || '';
+                    const shortName = item['short_name'] || '';
+                    const shortNameMm = item['short_name_mm'] || '';
+                    const region = item['_sheet_name'] || '';
+                    
+                    return `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td class="col-name">${escapeHtml(name)}</td>
+                            <td>${escapeHtml(nameMm)}</td>
+                            <td>${escapeHtml(shortName)}</td>
+                            <td>${escapeHtml(shortNameMm)}</td>
+                            <td class="col-region">${escapeHtml(region)}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                // Location Search - Table with Location columns
+                elements.resultsThead.innerHTML = `
+                    <tr>
+                        <th>#</th>
+                        <th>Region</th>
+                        <th>Town_Township</th>
+                        <th>ENG Quarter/Village</th>
+                        <th>MM Quarter/Village</th>
+                        <th>Postal Code</th>
+                    </tr>
+                `;
+                
+                elements.resultsTbody.innerHTML = results.map((item, index) => {
+                    // Try both original and snake_case column names
+                    const region = item['Region'] || item['region'] || '';
+                    const townTownship = item['Town_Township'] || item['town_township'] || '';
+                    const township = item['Township'] || item['township'] || '';
+                    const engVillage = item['ENG_Quarter_Village'] || item['eng_quarter_village'] || '';
+                    const mmVillage = item['MM_Quarter_Village'] || item['mm_quarter_village'] || '';
+                    const postalCode = item['Postal_Code'] || item['postal_code'] || '';
+                    
+                    return `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td class="col-region">${escapeHtml(region)}</td>
+                            <td class="col-township">${escapeHtml(township || townTownship)}</td>
+                            <td class="col-village">${escapeHtml(engVillage)}</td>
+                            <td class="col-village">${escapeHtml(mmVillage)}</td>
+                            <td class="col-postal">${escapeHtml(postalCode)}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+        
+        // ===== Export =====
+        function initExport() {
+            elements.exportBtn.addEventListener('click', exportToCSV);
+        }
+        
+        function exportToCSV() {
+            if (state.filteredResults.length === 0) return;
+            
+            const type = state.currentTab;
+            let headers, rows;
+            
+            if (type === 'name') {
+                headers = ['Name', 'Name MM', 'Short Name', 'Short Name MM', 'Region'];
+                rows = state.filteredResults.map(item => [
+                    `"${(item['name'] || '').replace(/"/g, '""')}"`,
+                    `"${(item['name_mm'] || '').replace(/"/g, '""')}"`,
+                    `"${(item['short_name'] || '').replace(/"/g, '""')}"`,
+                    `"${(item['short_name_mm'] || '').replace(/"/g, '""')}"`,
+                    `"${(item['_sheet_name'] || '').replace(/"/g, '""')}"`
+                ]);
+            } else {
+                headers = ['Region', 'Town_Township', 'ENG_Quarter_Village', 'MM_Quarter_Village', 'Postal_Code'];
+                rows = state.filteredResults.map(item => [
+                    `"${(item['Region'] || item['region'] || '').replace(/"/g, '""')}"`,
+                    `"${(item['Town_Township'] || item['town_township'] || '').replace(/"/g, '""')}"`,
+                    `"${(item['ENG_Quarter_Village'] || item['eng_quarter_village'] || '').replace(/"/g, '""')}"`,
+                    `"${(item['MM_Quarter_Village'] || item['mm_quarter_village'] || '').replace(/"/g, '""')}"`,
+                    `"${(item['Postal_Code'] || item['postal_code'] || '').replace(/"/g, '""')}"`
+                ]);
+            }
+            
+            const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `mm-${type}-search-${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+        
+        // ===== UI Helpers =====
+        function setLoading(show) {
+            state.isLoading = show;
+            elements.loading.classList.toggle('active', show);
+        }
+        
+        function clearResults() {
+            elements.resultsSection.classList.remove('active');
+            elements.resultsTbody.innerHTML = '';
+            elements.resultsThead.innerHTML = '';
+            elements.exportSection.style.display = 'none';
+            state.filteredResults = [];
+        }
+        
+        function showEmptyState() {
+            elements.resultsSection.classList.remove('active');
+            elements.exportSection.style.display = 'none';
+        }
+        
+        function showError(message) {
+            elements.resultsTbody.innerHTML = '';
+            elements.resultsSection.classList.add('active');
+            elements.resultsTableWrapper.style.display = 'none';
+            elements.emptyState.style.display = 'none';
+            elements.noResults.style.display = 'flex';
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // ===== Initialize =====
+        function init() {
+            initTabs();
+            initSearch();
+            initExport();
+            elements.searchName.focus();
+        }
+        
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

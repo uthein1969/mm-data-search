@@ -1,0 +1,2 @@
+Force Render cache clear and redeploy - 2026-07-24
+Fix: Tab type mismatch was causing Location Search to use Sheet 1 data

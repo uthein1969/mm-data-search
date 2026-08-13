@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.MmDataSearch" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">#4f46e5</item>
+        <item name="android:colorPrimaryDark">#4338ca</item>
+        <item name="android:colorAccent">#06b6d4</item>
+        <item name="android:statusBarColor">#0f0f23</item>
+        <item name="android:navigationBarColor">#0f0f23</item>
+    </style>
+</resources>

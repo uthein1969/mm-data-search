@@ -1,0 +1,6 @@
+{
+  "name": "MM Data Search",
+  "description": "A search interface for MM data.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

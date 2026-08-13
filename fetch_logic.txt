@@ -1,0 +1,38 @@
+        const url = CONFIG[activeTab].url;
+        
+        const fetchUrl = async (targetUrl: string) => {
+          const response = await fetch(targetUrl);
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          const text = await response.text();
+          if (text.trim().startsWith('<!') || text.trim().startsWith('<html')) {
+            throw new Error('Google Apps Script is returning an HTML page. Please ensure the script is deployed as a Web App, accessible to "Anyone".');
+          }
+--
+        try {
+          // Fetch base data
+          const baseData = await fetchUrl(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
+          let parsedData = [...baseData];
+          
+          // If NRC Search, attempt to fetch all 14 sheets just in case the API requires a sheet parameter
+          if (activeTab === 'sheet1' && baseData.length > 0 && baseData.length < 1000) {
+            const extraPromises = [];
+            // Try fetching sheets 2 to 14
+            for (let i = 2; i <= 14; i++) {
+              const sheetUrl = url + (url.includes('?') ? '&' : '?') + `sheet=${i}&t=` + Date.now();
+              extraPromises.push(fetchUrl(sheetUrl).catch(() => []));
+            }
+            const extraResults = await Promise.all(extraPromises);
+            parsedData = [...baseData, ...extraResults.flat()];
+            
+            // Deduplicate in case the API ignored the sheet parameter and returned sheet 1 every time
+--
+          setDataCache(prev => ({ ...prev, [activeTab]: parsedData }));
+          dataToSearch = parsedData;
+        } catch (fetchErr: any) {
+          console.error('Fetch error for', activeTab, ':', fetchErr.message);
+          throw fetchErr; // Propagate to outer catch to display to user
+        }
+      }
+
+      const filtered = filterData(dataToSearch, currentQuery, activeTab);
+      setResults(filtered);

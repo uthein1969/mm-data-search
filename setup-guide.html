@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MM Data Search - Setup Guide</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f23;
+            color: #f1f5f9;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { 
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #6366f1, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .step {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4f46e5;
+        }
+        .step-number {
+            display: inline-block;
+            background: #4f46e5;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        h2 { display: inline; font-size: 1.2rem; }
+        .code {
+            background: #252547;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 15px 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .highlight { color: #06b6d4; }
+        .url-box {
+            background: #252547;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            word-break: break-all;
+        }
+        .btn {
+            display: inline-block;
+            background: #4f46e5;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 10px 5px 10px 0;
+        }
+        .btn:hover { background: #4338ca; }
+        .note {
+            background: #1e3a5f;
+            border-left: 4px solid #06b6d4;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+        .warning {
+            background: #3d1f1f;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+        ul { margin-left: 20px; }
+        li { margin: 8px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MM Data Search - Setup Guide</h1>
+        
+        <div class="step">
+            <span class="step-number">1</span>
+            <h2>Deploy Google Apps Script for Sheet 1</h2>
+            <ul>
+                <li>Go to <a href="https://script.google.com/" target="_blank" style="color: #06b6d4;">https://script.google.com/</a></li>
+                <li>Click <strong>"New Project"</strong></li>
+                <li>Delete all existing code</li>
+                <li>Copy and paste the code from <code>google-apps-script.gs</code></li>
+                <li>Update the SHEET_ID with your Sheet 1 ID:</li>
+            </ul>
+            <div class="code">const SHEET_ID = '<span class="highlight">1nrMBnmgdjtefTNzW0ZBzeOp_mvBHBdSLeFHW_qPfLeo</span>';</div>
+            <ul>
+                <li>Click <strong>"Deploy"</strong> > <strong>"New deployment"</strong></li>
+                <li>Click the gear icon > select <strong>"Web app"</strong></li>
+                <li>Set <strong>"Who has access"</strong> to <strong>"Anyone"</strong></li>
+                <li>Click <strong>"Deploy"</strong> and copy the URL</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">2</span>
+            <h2>Deploy Google Apps Script for Sheet 2</h2>
+            <ul>
+                <li>Go back to <a href="https://script.google.com/" target="_blank" style="color: #06b6d4;">https://script.google.com/</a></li>
+                <li>Click <strong>"New Project"</strong> again</li>
+                <li>Delete all existing code</li>
+                <li>Copy and paste the code from <code>google-apps-script.gs</code></li>
+                <li>Update the SHEET_ID with your Sheet 2 ID:</li>
+            </ul>
+            <div class="code">const SHEET_ID = '<span class="highlight">1VcB_oia94R7dqRTl7U7fhxQznCwgnxDlHNCDN8ygagM</span>';</div>
+            <ul>
+                <li>Click <strong>"Deploy"</strong> > <strong>"New deployment"</strong></li>
+                <li>Click the gear icon > select <strong>"Web app"</strong></li>
+                <li>Set <strong>"Who has access"</strong> to <strong>"Anyone"</strong></li>
+                <li>Click <strong>"Deploy"</strong> and copy the URL</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">3</span>
+            <h2>Update app.js Configuration</h2>
+            <p>Open <code>app.js</code> and find the CONFIG section. Replace the empty URLs:</p>
+            <div class="code">const CONFIG = {
+    sheet1: {
+        url: '<span class="highlight">PASTE_YOUR_SHEET1_URL_HERE</span>',
+        // ...
+    },
+    sheet2: {
+        url: '<span class="highlight">PASTE_YOUR_SHEET2_URL_HERE</span>',
+        // ...
+    }
+};</div>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">4</span>
+            <h2>Test the App</h2>
+            <ul>
+                <li>Open <code>index.html</code> in your browser</li>
+                <li>Type <strong>"Yesagyo"</strong> in the search box</li>
+                <li>Click <strong>"Search"</strong></li>
+                <li>You should see results from your Google Sheet!</li>
+            </ul>
+        </div>
+        
+        <div class="note">
+            <strong>Note:</strong> The app automatically converts your Google Sheet headers to lowercase with underscores. For example:
+            <ul>
+                <li>"Name" becomes "name"</li>
+                <li>"Town_Township" stays as "town_township"</li>
+                <li>"Phone Number" becomes "phone_number"</li>
+            </ul>
+        </div>
+        
+        <div class="warning">
+            <strong>Important:</strong> Make sure you set "Who has access" to <strong>"Anyone"</strong> when deploying the Apps Script, otherwise the web app won't be able to access your data.
+        </div>
+        
+        <h2 style="margin-top: 30px;">Quick Links</h2>
+        <a href="https://script.google.com/" target="_blank" class="btn">Open Google Apps Script</a>
+        <a href="index.html" class="btn">Open MM Data Search</a>
+    </div>
+</body>
+</html>

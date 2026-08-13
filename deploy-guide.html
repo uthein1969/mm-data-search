@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deploy Google Apps Script</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f23;
+            color: #f1f5f9;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { 
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #06b6d4;
+        }
+        .step {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4f46e5;
+        }
+        .step-number {
+            display: inline-block;
+            background: #4f46e5;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        h2 { display: inline; font-size: 1.1rem; }
+        .code {
+            background: #252547;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin: 15px 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            position: relative;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .copy-btn:hover { background: #4338ca; }
+        .highlight { color: #06b6d4; font-weight: bold; }
+        .note {
+            background: #1e3a5f;
+            border-left: 4px solid #06b6d4;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+        .success {
+            background: #1e3a2f;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+        ul { margin-left: 20px; }
+        li { margin: 8px 0; }
+        .btn {
+            display: inline-block;
+            background: #4f46e5;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 10px 5px 10px 0;
+        }
+        .btn:hover { background: #4338ca; }
+        .btn-success { background: #10b981; }
+        .btn-success:hover { background: #059669; }
+        a { color: #06b6d4; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Deploy Google Apps Script for Myanmar NRC Search</h1>
+        
+        <div class="success">
+            <strong>Your Google Sheet:</strong> Myanmar_NRC_Format<br>
+            <strong>Sheet ID:</strong> <code>1nrMBnmgdjtefTNzW0ZBzeOp_mvBHBdSLeFHW_qPfLeo</code><br>
+            <strong>Tabs found:</strong> 8 Magway Region, 9 Naypyidaw Union Territory, etc.
+        </div>
+        
+        <div class="step">
+            <span class="step-number">1</span>
+            <h2>Open Google Apps Script</h2>
+            <p>Click the button below to open Google Apps Script:</p>
+            <a href="https://script.google.com/" target="_blank" class="btn">Open Google Apps Script</a>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">2</span>
+            <h2>Create New Project</h2>
+            <ul>
+                <li>Click <strong>"New Project"</strong> button</li>
+                <li>You'll see a code editor with default code</li>
+                <li><strong>Delete ALL the existing code</strong></li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">3</span>
+            <h2>Paste This Code</h2>
+            <p>Copy the code below and paste it into the editor:</p>
+            <div class="code" id="code-block">
+<button class="copy-btn" onclick="copyCode()">Copy Code</button>
+const SHEET_ID = '1nrMBnmgdjtefTNzW0ZBzeOp_mvBHBdSLeFHW_qPfLeo';
+
+function doGet(e) {
+  try {
+    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
+    const sheets = spreadsheet.getSheets();
+    let allData = [];
+    
+    sheets.forEach(sheet => {
+      const sheetName = sheet.getName();
+      const data = sheet.getDataRange().getValues();
+      if (data.length <= 1) return;
+      
+      const headers = data[0];
+      const rows = data.slice(1);
+      
+      rows.forEach(row => {
+        const obj = {};
+        headers.forEach((header, index) => {
+          const key = header.toString()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '_')
+            .replace(/^_|_$/g, '');
+          obj[key] = row[index];
+        });
+        obj['_sheet_name'] = sheetName;
+        
+        if (obj['name'] || obj['name_mm'] || obj['short_name']) {
+          allData.push(obj);
+        }
+      });
+    });
+    
+    return ContentService
+      .createTextOutput(JSON.stringify(allData))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ error: error.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}</div>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">4</span>
+            <h2>Deploy as Web App</h2>
+            <ul>
+                <li>Click <strong>"Deploy"</strong> button (top right)</li>
+                <li>Select <strong>"New deployment"</strong></li>
+                <li>Click the gear icon ⚙️</li>
+                <li>Select <strong>"Web app"</strong></li>
+                <li>Fill in:
+                    <ul>
+                        <li>Description: "Myanmar NRC Search API"</li>
+                        <li>Who has access: <span class="highlight">"Anyone"</span> (IMPORTANT!)</li>
+                    </ul>
+                </li>
+                <li>Click <strong>"Deploy"</strong></li>
+                <li>Click <strong>"Copy"</strong> to copy the URL</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">5</span>
+            <h2>Update app.js</h2>
+            <p>Open <code>app.js</code> and find this section:</p>
+            <div class="code">sheet1: {
+    url: '',  // ← Paste your URL here
+    searchColumn: 'Name',
+    nameKey: 'name',
+    detailKey: 'details'
+},</div>
+            <p>Replace the empty <code>url: ''</code> with the URL you copied.</p>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">6</span>
+            <h2>Test the App</h2>
+            <ul>
+                <li>Open <code>index.html</code> in your browser</li>
+                <li>Type <strong>"Taungdwingyi"</strong> in the search box</li>
+                <li>Click <strong>"Search"</strong></li>
+                <li>You should see results with Name, Name MM, Short Name MM, Short Name, and Region!</li>
+            </ul>
+            <a href="index.html" class="btn btn-success">Open MM Data Search</a>
+        </div>
+        
+        <div class="note">
+            <strong>Important Notes:</strong>
+            <ul>
+                <li>Make sure "Who has access" is set to <strong>"Anyone"</strong></li>
+                <li>The app will search across ALL tabs (Magway Region, Naypyidaw, etc.)</li>
+                <li>Results show: Name | Name MM | Short Name MM | Short Name | Region</li>
+            </ul>
+        </div>
+        
+        <div class="note">
+            <strong>Test URLs:</strong><br>
+            After deploying, test your URL directly in browser. You should see JSON data like:<br>
+            <code>[{"name":"Magway","name_mm":"...","short_name_mm":"...","short_name":"makana","_sheet_name":"8 Magway Region"},...]</code>
+        </div>
+    </div>
+    
+    <script>
+        function copyCode() {
+            const code = document.getElementById('code-block').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy Code', 2000);
+            });
+        }
+    </script>
+</body>
+</html>

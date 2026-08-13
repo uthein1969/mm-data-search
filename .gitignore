@@ -1,0 +1,16 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+android/gradle-8.0-bin.zip
+android/gradle/
+*.zip
+*.jar
+android/gradle-8.0-bin.zip
+android/gradle/
+*.zip
+*.jar

@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: mm-data-search
+    runtime: static
+    buildCommand: echo "Deploy v3 at 2026-07-24T19:30:00"
+    staticPublishPath: .
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: "no-cache, no-store, must-revalidate"
+      - path: /*
+        name: Pragma
+        value: "no-cache"
+      - path: /*
+        name: Expires
+        value: "0"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
